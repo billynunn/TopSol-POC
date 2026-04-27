@@ -1,0 +1,67 @@
+import pandas as pd
+import numpy as np
+
+# the set directory contained a 1D mountain range with clear elevation fluctuations against distance 
+df = pd.read_csv("/Users/billy/Desktop/KCL Undergrad/Dissertation/TopSol Testing/shadough.csv")
+
+# calculating the solar elevation angle, determining the position of the sun 
+height = 250
+shadow_length = 400
+sol = np.arctan(height/L) # solar elevationa angle in radians
+
+# calculating the  zenith angle, which remains the same throughout 
+opposite_vertical = np.radians(90) # converts 90 to radians
+z = opposite_vertical - sol # calculates zenith angle 
+
+# setting the solar constant 
+solar_constant = 102 
+
+for i in range(len(df) - 1):
+
+# calculate surface slope
+    x1 = df.loc[i, 'distance']
+    z1 = df.loc[i, 'elevation']
+    
+    x2 = df.loc[i+1, 'distance']
+    z2 = df.loc[i+1, 'elevation']
+    
+    dx = x2 - x1
+    dz = z2 - z1
+    
+    slope = np.arctan(dz / dx)   
+    slope_deg = np.degrees(slope) # converts slope from radians to degrees
+
+# calculating incidence angle
+    ia_radians = np.cos(Z - slope)   # incident angle term
+    ia = np.cos(Z)
+
+# produces binary shadow mask to decide if point is sunlit (1) or shaded (0) 
+    S = 1
+    for j in range(i + 1, len(df)):
+        xj = df.loc[j, 'distance']
+        zj = df.loc[j, 'elevation']
+
+        dx_ray = xj - x1
+        z_ray = z1 + dx_ray * np.tan(sol)
+
+        if zj > z_ray:
+            S = 0
+            break
+
+# eqaution 2.1: total incoming radiation 
+ic = solar_constant * cos_theta_i * S
+
+# eqaution 2.2: slope and aspect
+slope_aspect = solar_constant * (cos_theta_i - ia)
+
+# eqaution 2.3: self shading 
+  if np.degrees(np.arccos(cos_theta_i)) >= 90:
+        shaded_relief = -solar_constant * ia
+    else:
+        shaded_relief = 0
+
+# eqaution 2.4: cast shadow
+ cast_shadow = solar_constant * cos_theta_i * (S - 1)
+
+# eqaution 2.5: total topographic effect
+    total_effect = solar_constant * (S * cos_theta_i - ia)
